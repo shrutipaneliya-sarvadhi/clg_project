@@ -1,0 +1,104 @@
+{% extends "sarvadhihr/www/sidebar_employee.html" %}
+{% block page_content %}
+<style>
+    .holiday-box {
+        background-color: white;
+        color: black;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+    }
+</style>
+
+<div class="container mt-5">
+    <div>
+        <div class="d-flex flex-wrap gap-3">
+            <button class="btn btn-dark rounded-pill shadow-sm text-white" id="LeaveDetails">Leave Details</button>
+            <button class="btn btn-dark rounded-pill shadow-sm text-white" id="LeaveRequest">Leave Request</button>
+            <button class="btn btn-dark rounded-pill shadow-sm text-white" id="LeaveApproved">Leave Approved</button>
+        </div>
+    </div>
+    <h2 class="mb-4 text-center">My Leave Details</h2>
+
+    <!-- Bootstrap Row with 5 Boxes -->
+    <div class="row text-center mb-4">
+        <div class="col-md-2 offset-md-1">
+            <div class="p-3 border bg-light" style="height: 150px;">Absent</div>
+        </div>
+        <div class="col-md-2">
+            <div class="p-3 border bg-light" style="height: 150px;">Casual Leave</div>
+        </div>
+        <div class="col-md-2">
+            <div class="p-3 border bg-light" style="height: 150px;">Leave without Pay</div>
+        </div>
+        <div class="col-md-2">
+            <div class="p-3 border bg-light" style="height: 150px;">Marriage Leave</div>
+        </div>
+        <div class="col-md-2">
+            <div class="p-3 border bg-light" style="height: 150px;">Short Leave</div>
+        </div>
+    </div>
+
+    <!-- Holiday List Section (All Holidays in One Div) -->
+    
+    <div class="holiday-box">
+        <h6 class="text-center">Upcoming Holidays & Weekends</h3>
+        {% for holiday in holiday_list[:5] %}
+        <p><strong>{{ holiday.date }}</strong>          {{ holiday.holiday_name }}</p>
+        {% endfor %}
+        <div class="text-center mt-4">
+            <a href="leave/holidays">View All Holidays</a>
+        </div>
+    
+    </div>
+
+    <!-- View All Holidays Button -->
+   
+    <!-- Table with Leave Details -->
+    {% if leave_types %}
+    <div class="table-responsive mt-4">
+        <table class="table table-bordered text-center" id="leaveTable">
+            <thead class="table-dark">
+                <tr>
+                    <th>Total Paid Leave</th>
+                    <th>Remaining Paid Leave</th>
+                    <th>Taken Casual Leave</th>
+                    <th>Taken Sick Leave</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for leave in leave_types %}
+                <tr>
+                    <td>{{ leave.total_paid_leave }}</td>
+                    <td>{{ leave.remaining_paid_leave }}</td>
+                    <td>{{ leave.taken_casual_leave }}</td>
+                    <td>{{ leave.taken_sick_leave }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-danger text-center mt-3">No leave records found for your profile.</p>
+    {% endif %}
+
+    <!-- Apply Leave Button -->
+    <div class="text-center mt-4">
+        <a href="leave/apply-leave" class="btn btn-primary">Apply for Leave</a>
+    </div>
+</div>
+<script>
+    document.getElementById("LeaveDetails").addEventListener("click", function() {
+        window.location.href = window.location.href; // Refreshes the current page
+    });
+
+    document.getElementById("LeaveRequest").addEventListener("click", function() {
+        window.location.href = "leave/leave_request.html"; // Change this to the correct URL of the other page
+    });
+    document.getElementById("LeaveApproved").addEventListener("click", function() {
+        window.location.href = "leave/leave_approved.html"; // Change this to the correct URL of the other page
+    });
+</script>
+
+{% endblock %}

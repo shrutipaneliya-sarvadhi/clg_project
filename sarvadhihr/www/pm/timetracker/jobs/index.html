@@ -1,0 +1,372 @@
+{% extends "sarvadhihr/www/sidebar_pm.html" %}
+
+{% block page_content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+    .button-container {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 1000;
+        padding: 15px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        border-bottom: 1px solid #ccc;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .scrollable-content {
+        height: 70vh;
+        overflow-y: auto;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #f9f9f9;
+    }
+</style>
+
+<div class="container mt-5">
+    <h2 class="mb-4">My Timetracker</h2>
+
+   <!-- Button Container (Sticky) -->
+   <div class="card button-container">
+        <div class="d-flex flex-wrap gap-3">
+            <button class="btn btn-dark rounded-pill shadow-sm text-white" id="timelogsButton">Timelogs</button>
+            <button class="btn btn-dark rounded-pill shadow-sm text-white" id="timesheetButton">Timesheets</button>
+            <button class="btn btn-dark rounded-pill shadow-sm text-white" id="jobsButton">Jobs</button>
+            <button class="btn btn-dark rounded-pill shadow-sm text-white" id="projectsButton">Projects</button>
+        </div>
+    </div>
+
+   
+</div>
+<div class="scrollable-content">
+
+<div class="card p-4 shadow-lg border border-secondary rounded">
+    <h4 class="mb-3 text-black-50">Job Assignments</h4>
+    <input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
+
+    <!-- Job Assignment Form -->
+    <form id="jobAssignmentForm">
+        <div class="mb-3">
+            <label for="jobname" class="form-label fw-bold">Job Name</label>
+            <input type="text" class="form-control border-secondary" id="job_name" required>
+        </div>
+        <div class="mb-3">
+            <label for="start_date" class="form-label fw-bold">Start Date</label>
+            <input type="date" class="form-control border-secondary" id="start_date" required>
+        </div>
+        <div class="mb-3">
+            <label for="end_date" class="form-label fw-bold">End Date</label>
+            <input type="date" class="form-control border-secondary" id="end_date" required>
+        </div>
+        <div class="mb-3">
+            <label for="project" class="form-label fw-bold">Project</label>
+            <select id="project">
+                <option value="">Select project</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="user" class="form-label fw-bold">User</label>
+    <select  id="user" required>
+        <option value="">Select User</option>
+    </select>
+        </div>
+        <div class="mb-3">
+            <label for="department" class="form-label fw-bold">Department</label>
+            <select id="department">
+                <option value="">Select department</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-dark rounded-pill shadow-sm text-white">Assign Job</button>
+    </form>
+
+</div>
+
+<div class="mt-4">
+    <h4 class="mb-3">Jobs Entries</h4>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Job Name</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Project</th>
+                <th>User</th>
+                <th>Department</th>
+            </tr>
+        </thead>
+        <tbody id="projectTableBody">
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+    fetchprojects(); // Call this function when the page loads
+    fetchUsers();
+});
+
+
+    console.log("script added")
+    document.addEventListener('submit', function (event) {
+    if (event.target.id === 'jobAssignmentForm') {
+        event.preventDefault();
+
+        let formData = {
+            job_name: document.getElementById('job_name').value,
+            start_date: document.getElementById('start_date').value,
+            end_date: document.getElementById('end_date').value,
+            project: document.getElementById('project').value,
+            user: document.getElementById('user').value,
+            department: document.getElementById('department').value,
+        };
+        console.log("form data:",formData)
+        if (!formData.job_name || !formData.start_date || !formData.end_date || !formData.project || !formData.user || !formData.department) {
+            alert("Please fill in all the fields.");
+            return;
+        }
+
+        let csrfTokenElement = document.querySelector('[name="csrf_token"]');
+        let csrf_token = csrfTokenElement ? csrfTokenElement.value : '';
+
+        fetch('http://hrms.localhost:8002/api/method/ourhrms.api.jobs', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Frappe-CSRF-Token': csrf_token,
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Server Response:", data);
+
+            // Check if project exists
+            if (data._server_messages) {
+                let messages = JSON.parse(data._server_messages);
+                alert(messages[0].message);
+                return;
+            }
+
+            alert("Data submitted successfully!");
+
+            // Ensure form exists before resetting
+            let form = document.getElementById('jobAssignmentForm');
+            if (form) {
+                form.reset();
+            }
+        })
+        .catch(error => {
+            console.error("Request failed:", error);
+        });
+    }
+});
+
+
+// document.getElementById("contentContainer").innerHTML = content;
+fetchJobs(); //      existing timelogs
+    
+    function appendToTable(data) {
+        let tableBody = document.getElementById('jobAssignmentForm');
+        let row = `<tr>
+                        <td>${data.job_name}</td>
+                        <td>${data.start_date}</td>
+                        <td>${data.end_date}</td>
+                        <td>${data.project}</td>
+                        <td>${data.user}</td>
+                        <td>${data.department}</td>
+                    </tr>`;
+        tableBody.innerHTML += row;
+    }
+
+    function fetchJobs() {
+        console.log("fetch project calling")
+    fetch('/api/method/ourhrms.api.get_job', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Fetched Data:', data); // Debugging step
+
+            // Ensure data.message and data.message.data exist
+        if (data.message && Array.isArray(data.message.data)) {
+            let records = data.message.data;
+            let tableBody = document.getElementById("projectTableBody");
+            tableBody.innerHTML = "";
+
+            records.forEach((log, index) => {
+                console.log("Job Name:", log.job_name, "Department:", log.department); // Debugging step
+
+                let row = `<tr>
+                    <td>${log.job_name || '-'}</td>
+                    <td>${log.start_date || '-'}</td>
+                    <td>${log.end_date || '-'}</td>
+                    <td>${log.project || '-'}</td>
+                    <td>${log.user || '-'}</td>
+                    <td>${log.department || '-'}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+        } else {
+            console.error("Invalid data format or missing 'data' array");
+        }
+       
+    })
+    .catch(error => console.error("Request failed:", error));
+}
+
+
+
+
+
+
+
+function fetchprojects() {
+    console.log("Fetching project...");
+
+    fetch('/api/method/ourhrms.api.get_project')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Full API Response for project:", data);
+
+            let projectSelect = document.getElementById("project");
+            projectSelect.innerHTML = '<option value="">Select project</option>'; // Reset dropdown
+
+            if (data.message && data.message.status === "success" && Array.isArray(data.message.data)) {
+                console.log("Extracted project Data:", data.message.data);
+
+                data.message.data.forEach(project => {
+                    console.log("Adding project:", project.project_name);
+
+                    let option = document.createElement("option");
+                    option.value = project.project_name; // Value set as job_name
+                    option.textContent = project.project_name; // Display name set as job_name
+                    projectSelect.appendChild(option);
+                });
+
+                console.log("Dropdown Updated:", projectSelect.innerHTML);
+            } else {
+                console.error("No valid project data found in response.");
+            }
+        })
+        .catch(error => console.error('Error fetching project:', error));
+}
+
+
+
+
+function fetchUsers() {
+    console.log("Fetching users...");
+
+    fetch('/api/method/ourhrms.api.get_users')
+        .then(response => response.json())
+        .then(data => {
+            console.log("User Data Fetched:", data);
+
+            let userSelect = document.getElementById("user");
+            if (!userSelect) {
+                console.error("User dropdown not found!");
+                return;
+            }
+
+            userSelect.innerHTML = '<option value="">Select User</option>'; // Reset dropdown
+
+            if (data.message && data.message.status === "success" && Array.isArray(data.message.data)) {
+                console.log("Extracted User Data:", data.message.data);
+
+                data.message.data.forEach(user => {
+                    let displayText = user.full_name || user.username || user.email || user.name; // Ensure something is displayed
+                    let option = document.createElement("option");
+                    option.value = user.name || user.username || user.email; 
+                    option.textContent = displayText;  // ✅ Fix: Set the visible text inside <option>
+
+                    console.log("Adding user:", displayText);
+                    userSelect.appendChild(option);
+                });
+                console.log("User dropdown updated:", userSelect.innerHTML);
+            } else {
+                console.error("No valid user data found in response.");
+            }
+        })
+        .catch(error => console.error('Error fetching users:', error));
+}
+
+
+// Call fetchUsers() when page loads
+document.addEventListener("DOMContentLoaded", function () {
+    fetchUsers();
+    fetchdepartment();
+});
+
+
+
+
+
+
+function fetchdepartment() {
+    console.log("Fetching department...");
+
+    fetch('/api/method/ourhrms.api.get_department')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Full API Response for department:", data);
+
+            let departmentSelect = document.getElementById("department");
+            departmentSelect.innerHTML = '<option value="">Select department</option>'; // Reset dropdown
+
+            if (data.message && data.message.status === "success" && Array.isArray(data.message.data)) {
+                console.log("Extracted department Data:", data.message.data);
+
+                data.message.data.forEach(department => {
+                    console.log("Adding department:", department.department);
+
+                    let option = document.createElement("option");
+                    option.value = department.department_name; // Value set as job_name
+                    option.textContent = department.department_name; // Display name set as job_name
+                    departmentSelect.appendChild(option);
+                });
+
+                console.log("Dropdown Updated:", departmentSelect.innerHTML);
+            } else {
+                console.error("No valid department data found in response.");
+            }
+        })
+        .catch(error => console.error('Error fetching department:', error));
+}
+
+
+
+
+
+ // Event Listeners for buttons
+ document.getElementById("timelogsButton").addEventListener("click", function() {
+        window.location.href = "/pm/timetracker/timelogs/index.html"; // Redirects to the specified URL
+    });
+
+    document.getElementById("timesheetButton").addEventListener("click", function() {
+        window.location.href = "/pm/timetracker/timesheet/index.html"; // Redirects to the specified URL
+    });
+
+    document.getElementById("jobsButton").addEventListener("click", function() {
+        window.location.href = "/pm/timetracker/jobs/index.html"; // Redirects to the specified URL
+
+    });
+
+    document.getElementById("projectsButton").addEventListener("click", function() {
+        window.location.href = "/pm/timetracker/projects/index.html"; // Redirects to the specified URL
+    });
+
+
+
+</script>
+{% endblock %}

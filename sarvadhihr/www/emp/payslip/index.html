@@ -1,0 +1,41 @@
+{% extends "sarvadhihr/www/sidebar_employee.html" %}
+
+{% block page_content %}
+<div class="container mt-5">
+    <h2 class="mb-4">My Payslips</h2>
+    
+    {% if payslips %}
+    <div class="table-responsive">
+        <table class="table table-bordered text-center" id="payslipTable" style="border: 1px solid black;">
+            <thead class="table-dark">
+                <tr>
+                    <th style="padding: 15px; border: 1px solid black;">ID</th>
+                    <th style="padding: 15px; border: 1px solid black;">Total Salary</th>
+                    <th style="padding: 15px; border: 1px solid black;">Deductions</th>
+                    <th style="padding: 15px; border: 1px solid black;">Net Salary</th>
+                    <th style="padding: 15px; border: 1px solid black;">Total Hours</th>
+                    <th style="padding: 15px; border: 1px solid black;">Period Start Date</th>
+                    <th style="padding: 15px; border: 1px solid black;">Period End Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payslip in payslips %}
+                <tr>
+                    <td style="padding: 15px; border: 1px solid black;">{{ payslip.name }}</td>
+                    <td style="padding: 15px; border: 1px solid black;">{{ payslip.total_salary }}</td>
+                    <td style="padding: 15px; border: 1px solid black;">{{ payslip.total_deductions }}</td>
+                    <td style="padding: 15px; border: 1px solid black;">{{ payslip.net_salary }}</td>
+                    <td style="padding: 15px; border: 1px solid black;">{{ payslip.total_hours }}</td>
+                    <td style="padding: 15px; border: 1px solid black;">{{ payslip.period_start_date }}</td>
+                    <td style="padding: 15px; border: 1px solid black;">{{ payslip.period_end_date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-danger">No payslips found.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

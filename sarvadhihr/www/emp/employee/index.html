@@ -1,0 +1,44 @@
+
+{% extends "sarvadhihr/www/sidebar_employee.html" %} 
+
+{% block page_content %}
+
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">My Profile</h2>
+ 
+    {% if employee %}
+    <div class="table-responsive">
+        <table class="table table-bordered text-center" id="profileTable" style="border: 1px solid black;">
+            <tbody>
+                <tr>
+                    <th style="padding: 15px; border: 1px solid black;">First Name</th>
+                    <td style="padding: 15px; border: 1px solid black;">{{ employee.first_name }}</td>
+                </tr>
+                <tr>
+                    <th style="padding: 15px; border: 1px solid black;">Last Name</th>
+                    <td style="padding: 15px; border: 1px solid black;">{{ employee.last_name }}</td>
+                </tr>
+                <tr>
+                    <th style="padding: 15px; border: 1px solid black;">Email</th>
+                    <td style="padding: 15px; border: 1px solid black;">{{ employee.email }}</td>
+                </tr>
+                <tr>
+                    <th style="padding: 15px; border: 1px solid black;">Date of Joining</th>
+                    <td style="padding: 15px; border: 1px solid black;">{{ employee.date_of_joining }}</td>
+                </tr>
+                <tr>
+                    <th style="padding: 15px; border: 1px solid black;">Department</th>
+                    <td style="padding: 15px; border: 1px solid black;">{{ employee.department }}</td>
+                </tr>
+                <tr>
+                    <th style="padding: 15px; border: 1px solid black;">Designation</th>
+                    <td style="padding: 15px; border: 1px solid black;">{{ employee.designation }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-danger text-center">No employee record found for your login.</p>
+    {% endif %}
+</div>
+{% endblock %}

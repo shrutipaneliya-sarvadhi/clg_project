@@ -1,0 +1,593 @@
+{% extends "sarvadhihr/www/sidebar_pm.html" %}
+
+{% block page_content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+    .button-container {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 1000;
+        padding: 15px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        border-bottom: 1px solid #ccc;
+    }
+
+    .scrollable-content {
+        height: 70vh;
+        overflow-y: auto;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #f9f9f9;
+    }
+</style>
+
+<div class="container mt-5">
+    <h2 class="mb-4">My Timetracker</h2>
+
+    <div class="card button-container">
+        <div class="d-flex flex-wrap gap-3">
+            <button class="btn btn-dark rounded-pill shadow-sm text-white" id="timelogsButton">Timelogs</button>
+            <button class="btn btn-dark rounded-pill shadow-sm text-white" id="timesheetButton">Timesheets</button>
+            <button class="btn btn-dark rounded-pill shadow-sm text-white" id="jobsButton">Jobs</button>
+            <button class="btn btn-dark rounded-pill shadow-sm text-white" id="projectsButton">Projects</button>
+            <button id="timerButton" onclick="toggleTimer()" style="background-color: green; color: black; display: none;">
+                Start Timer
+                </button>
+                
+        </div>
+        
+    </div>
+
+    <div id="contentContainer" class="scrollable-content mt-3"></div>
+</div>
+
+<script>
+
+function showTimerButton(show) {
+        let timerButton = document.getElementById("timerButton");
+        if (show) {
+            timerButton.style.display = "inline-block";
+        } else {
+            timerButton.style.display = "none";
+        }
+    }
+
+    function loadContent() {
+        let content = `
+
+        
+            <div class="card p-4 shadow-lg border border-secondary rounded">
+                <h4 class="mb-3 text-black-50">Timelog Form</h4>
+                <div>
+               
+
+                <input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
+
+                <form id="timelogForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Project</label>
+                    <select id="project" onchange="fetchJobsByProject(this.value)"">
+                        <option value="">Select project</option>
+                    </select>
+                        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Job</label>
+                    <select id="job">
+                        <option value="">Select Job</option>
+                    </select>
+                
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Todo</label>
+                        <input type="text" class="form-control border-secondary" id="todo" name="todo">
+                        <div class="mb-3">
+                        <label class="form-label fw-bold">Date</label>
+                        <input type="date" id="date" class="form-control border-secondary" required>
+                    </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Company Name</label>
+                        <input type="text" class="form-control border-secondary" id="company_name" name="company_name" value="Sarvadhi Solutions Pvt Ltd" readonly>
+                    </div>
+                     <div class="mb-3">
+                    <label class="form-label fw-bold">Time</label>
+                    <input type="text" id="time" name="time" readonly> <!-- Hidden input field -->
+                </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Status</label>
+                        <select class="form-control border-secondary" id="status" name="status">
+                            <option value="">Select</option>
+                            <option value="Billable">Billable</option>
+                            <option value="Non Billable">Non Billable</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-dark rounded-pill shadow-sm text-white">Save Timelog</button>
+                </form>
+            </div>
+
+            <div class="mt-4">
+                <h4 class="mb-3">Timelog Entries</h4>
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Project</th>
+                            <th>Job</th>
+                            <th>Todo</th>
+                            <th>Company</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="timelogTableBody">
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        document.getElementById("contentContainer").innerHTML = content;
+        fetchTimelogs(); // Load existing timelogs
+
+        // setupTimer(); // Initialize the timer
+
+    }
+
+    document.getElementById("timelogsButton").addEventListener("click", function() {
+        loadContent();
+        showTimerButton(true); // Show the timer button
+        fetchJobs(); // Fetch jobs after the content is loaded
+        fetchprojects();
+
+
+    });
+
+    document.getElementById("timesheetButton").addEventListener("click", function() {
+        window.location.href = "/pm/timetracker/timesheet/index.html";
+    });
+
+    document.getElementById("jobsButton").addEventListener("click", function() {
+        window.location.href = "/pm/timetracker/jobs/index.html";
+    });
+
+    document.getElementById("projectsButton").addEventListener("click", function() {
+        window.location.href = "/pm/timetracker/projects/index.html";
+    });
+
+    document.addEventListener('submit', function (event) {
+        if (event.target.id === 'timelogForm') {
+            event.preventDefault();
+
+            let formData = {
+                project: document.getElementById('project').value,
+                job: document.getElementById('job').value,
+                todo: document.getElementById('todo').value,
+                company_name: document.getElementById('company_name').value,
+                status: document.getElementById('status').value,
+                time:document.getElementById('time').value,
+                date:document.getElementById('date').value,
+
+                
+            };
+            
+            if (!formData.project || !formData.job || !formData.todo || !formData.company_name || !formData.status) {
+                alert("Please fill in all the fields.");
+                return;
+            }
+
+            let csrf_token = document.querySelector('[name="csrf_token"]').value;
+
+            fetch('http://hrms.localhost:8002/api/method/ourhrms.api.timelog', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Frappe-CSRF-Token': csrf_token
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === "Success") {
+                    alert("Data submitted successfully!");
+                    appendToTable(formData); // Append new entry to table
+                    document.getElementById('timelogForm').reset();
+                } else {
+                    alert("Data submitted successfully.");
+                }
+            })
+            .catch(error => {
+                console.error("Request failed:", error);
+            });
+        }
+
+            
+});
+
+    function appendToTable(data) {
+        let tableBody = document.getElementById('timelogTableBody');
+        let row = `<tr>
+                        <td>${data.project}</td>
+                        <td>${data.job}</td>
+                        <td>${data.todo}</td>
+                        <td>${data.company_name}</td>
+                        <td>${data.status}</td>
+                        <td>${data.time}</td>
+                        <td>${data.date}</td>
+
+                    </tr>`;
+        tableBody.innerHTML += row;
+    }
+
+    function fetchTimelogs() {
+    fetch('/api/method/ourhrms.api.get_timelogs', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+
+            // Ensure data.message and data.message.data exist
+            if (data.message && Array.isArray(data.message.data)) {
+            let records = data.message.data;
+            let tableBody = document.getElementById("timelogTableBody");
+            tableBody.innerHTML = "";
+
+            // Grouping Data by Date
+            let groupedData = {};
+            let timeSums = {};
+
+
+            records.forEach(log => {
+                let dateKey = log.date && log.date !== "-" ? log.date : "Unspecified Date";
+                if (!groupedData[dateKey]) {
+                    groupedData[dateKey] = [];
+                    timeSums[dateKey] = 0; // Initialize time sum for this date
+
+                }
+                groupedData[dateKey].push(log);
+                 // Convert time into seconds and sum it
+                 if (log.time) {
+                    let timeParts = log.time.split(":").map(Number);
+                    let totalSeconds = 0;
+                    
+                    if (timeParts.length === 3) { // Format: HH:MM:SS
+                        totalSeconds = timeParts[0] * 3600 + timeParts[1] * 60 + timeParts[2];
+                    } else if (timeParts.length === 2) { // Format: MM:SS
+                        totalSeconds = timeParts[0] * 60 + timeParts[1];
+                    }
+
+                    timeSums[dateKey] += totalSeconds;
+                }
+                 
+            });
+            
+
+            // Creating Table Rows for Each Date Group
+            Object.keys(groupedData).forEach(date => {
+                           // Convert total seconds back to HH:MM:SS
+                let totalSeconds = timeSums[date];
+                let hours = Math.floor(totalSeconds / 3600);
+                let minutes = Math.floor((totalSeconds % 3600) / 60);
+                let seconds = totalSeconds % 60;
+                let formattedTotalTime = `${hours > 0 ? hours + ":" : ""}${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                // Add Date Row (Merged Column)
+                let dateRow = `<tr class="table-primary">
+                    <td colspan="5" class="fw-bold text-center">${date}</td>
+                    
+                   <td colspan="2" class="fw-bold text-center">${formattedTotalTime}</td>
+
+                </tr>`;
+                tableBody.innerHTML += dateRow;
+
+
+                saveFormattedTotalTime(date, formattedTotalTime);
+
+
+                // Add Timelog Entries for the Date
+                groupedData[date].forEach(log => {
+                    let row = `<tr>
+                        <td>${log.project || '-'}</td>
+                        <td>${log.job || '-'}</td>
+                        <td>${log.todo || '-'}</td>
+                        <td>${log.company_name || '-'}</td>
+                        <td>${log.status || '-'}</td>
+                        <td>${log.time || '-'}</td>
+                        <td>${log.date || '-'}</td>
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                });
+            });
+        } else {
+            console.error("Invalid data format or missing 'data' array");
+        }
+    })
+    .catch(error => console.error("Request failed:", error));
+}
+let timer;
+let startTime;
+let running = false;
+let inactivityTimer; // ✅ Declare it globally
+let pausedTime = 0; // Store elapsed time when paused
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    let savedStartTime = localStorage.getItem("startTime");
+    let savedRunning = localStorage.getItem("running");
+
+    if (savedRunning === "true" && savedStartTime) {
+        startTime = new Date(parseInt(savedStartTime));
+        running = true;
+        resumeTimer();
+        startInactivityTimer(); // Start inactivity tracking
+    }
+
+  // Detect user activity and reset inactivity timer
+  document.addEventListener("mousemove", resetInactivityTimer);
+    document.addEventListener("keydown", resetInactivityTimer);
+    document.addEventListener("click", resetInactivityTimer);
+
+});
+
+function toggleTimer() {
+    let button = document.getElementById("timerButton");
+    let timeField = document.getElementById("time");
+
+    if (!running) {
+        // Start Timer
+        startTime = new Date(new Date().getTime() - pausedTime); // Resume from paused time
+        localStorage.setItem("startTime", startTime.getTime()); // Save start time
+        localStorage.setItem("running", "true"); // Save running state
+
+        button.style.backgroundColor = "red";
+        button.innerHTML = "Stop Timer";
+        timer = setInterval(updateTimerDisplay, 1000);
+        running = true;
+
+        startInactivityTimer(); // Start inactivity tracking
+
+    } else {
+        // Stop Timer
+        stopTimer();
+
+        // clearInterval(timer);
+        // let elapsedTime = getElapsedTime();
+        // timeField.value = formatTime(elapsedTime); // Store time in input field
+
+        // button.innerHTML = "Start Timer";
+        // button.style.backgroundColor = "green";
+
+        // localStorage.removeItem("startTime"); // Clear saved data
+        // localStorage.setItem("running", "false");
+
+        // running = false;
+    }
+}
+
+function pauseTimer() {
+    clearInterval(timer);
+    let button = document.getElementById("timerButton");
+
+    pausedTime = getElapsedTime().getTime(); // Save elapsed time
+    localStorage.setItem("pausedTime", pausedTime);
+    localStorage.setItem("running", "false");
+
+    button.innerHTML = "Resume Timer";
+    button.style.backgroundColor = "green";
+
+    running = false;
+    clearTimeout(inactivityTimer);
+}
+
+
+
+function stopTimer() {
+    clearInterval(timer);
+    let timeField = document.getElementById("time");
+    let button = document.getElementById("timerButton");
+
+    let elapsedTime = getElapsedTime();
+    timeField.value = formatTime(elapsedTime); // Store time in input field
+
+    button.innerHTML = "Start Timer";
+    button.style.backgroundColor = "green";
+
+    localStorage.removeItem("startTime"); // Clear saved data
+    localStorage.setItem("running", "false");
+
+    running = false;
+    clearTimeout(inactivityTimer); // Stop inactivity tracking
+}
+
+
+function updateTimerDisplay() {
+    let button = document.getElementById("timerButton");
+    let elapsedTime = getElapsedTime();
+    button.innerHTML = formatTime(elapsedTime);
+}
+
+function getElapsedTime() {
+    return new Date(new Date() - startTime);
+}
+
+function formatTime(elapsedTime) {
+    let hours = elapsedTime.getUTCHours(); // Get hours
+    let minutes = elapsedTime.getUTCMinutes();
+    let seconds = elapsedTime.getUTCSeconds();
+
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+
+function resumeTimer() {
+    let button = document.getElementById("timerButton");
+    button.style.backgroundColor = "red";
+    timer = setInterval(updateTimerDisplay, 1000);
+}
+
+function startInactivityTimer() {
+    clearTimeout(inactivityTimer); // Clear any previous timer
+    inactivityTimer = setTimeout(() => {
+        if (running) {
+            pauseTimer(); // Stop the timer after inactivity
+            alert("Timer stopped due to inactivity.");
+        }
+    }, 3000); // 5 minutes (300,000 ms)
+}
+
+function resetInactivityTimer() {
+    if (running) {
+        startInactivityTimer(); // Restart inactivity countdown
+    }
+}
+
+
+
+
+
+
+
+
+
+function saveFormattedTotalTime(date, formattedTotalTime) {
+    let csrf_token = document.querySelector('[name="csrf_token"]').value;
+
+    fetch('/api/method/ourhrms.api.update_formatted_total_time', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Frappe-CSRF-Token': csrf_token
+        },
+        body: JSON.stringify({
+            date: date,
+            formattedtotaltime: formattedTotalTime
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message === "Success") {
+            console.log("Total Time successfully saved for", date);
+        } else {
+            console.error("Failed to save total time.");
+        }
+    })
+    .catch(error => {
+        console.error("Request failed:", error);
+    });
+}
+
+
+
+
+function fetchJobs() {
+    console.log("Fetching jobs...");
+
+    fetch('/api/method/ourhrms.api.get_job')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Full API Response:", data);
+
+            let jobSelect = document.getElementById("job");
+            jobSelect.innerHTML = '<option value="">Select Job</option>'; // Reset dropdown
+
+            if (data.message && data.message.status === "success" && Array.isArray(data.message.data)) {
+                console.log("Extracted Job Data:", data.message.data);
+
+                data.message.data.forEach(job => {
+                    console.log("Adding Job:", job.job_name);
+
+                    let option = document.createElement("option");
+                    option.value = job.job_name; // Value set as job_name
+                    option.textContent = job.job_name; // Display name set as job_name
+                    jobSelect.appendChild(option);
+                });
+
+                console.log("Dropdown Updated:", jobSelect.innerHTML);
+            } else {
+                console.error("No valid job data found in response.");
+            }
+        })
+        .catch(error => console.error('Error fetching jobs:', error));
+}
+
+
+
+
+
+
+
+function fetchprojects() {
+    console.log("Fetching project...");
+
+    fetch('/api/method/ourhrms.api.get_project')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Full API Response for project:", data);
+
+            let projectSelect = document.getElementById("project");
+            projectSelect.innerHTML = '<option value="">Select project</option>'; // Reset dropdown
+
+            if (data.message && data.message.status === "success" && Array.isArray(data.message.data)) {
+                console.log("Extracted project Data:", data.message.data);
+
+                data.message.data.forEach(project => {
+                    console.log("Adding project:", project.project_name);
+
+                    let option = document.createElement("option");
+                    option.value = project.project_name; // Value set as job_name
+                    option.textContent = project.project_name; // Display name set as job_name
+                    projectSelect.appendChild(option);
+                });
+
+                console.log("Dropdown Updated:", projectSelect.innerHTML);
+            } else {
+                console.error("No valid project data found in response.");
+            }
+        })
+        .catch(error => console.error('Error fetching project:', error));
+}
+
+
+
+
+function fetchJobsByProject(project_name) {
+    console.log("Fetching jobs for project:", project_name);
+
+    fetch(`/api/method/ourhrms.api.get_job?project_name=${encodeURIComponent(project_name)}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log("Full API Response:", data);
+
+            let jobSelect = document.getElementById("job");
+            jobSelect.innerHTML = '<option value="">Select Job</option>'; // Reset dropdown
+
+            if (data.message && data.message.status === "success" && Array.isArray(data.message.data)) {
+                console.log("Extracted Job Data:", data.message.data);
+
+                data.message.data.forEach(job => {
+                    if (job.project === project_name) {  // Filter jobs by project
+                        console.log("Adding Job:", job.job_name);
+
+                        let option = document.createElement("option");
+                        option.value = job.job_name;
+                        option.textContent = job.job_name;
+                        jobSelect.appendChild(option);
+                    }
+                });
+
+                console.log("Dropdown Updated:", jobSelect.innerHTML);
+            } else {
+                console.error("No valid job data found in response.");
+            }
+        })
+        .catch(error => console.error('Error fetching jobs:', error));
+}
+
+
+
+  
+</script>
+{% endblock %}

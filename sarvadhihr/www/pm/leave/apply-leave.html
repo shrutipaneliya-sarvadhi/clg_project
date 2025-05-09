@@ -1,0 +1,141 @@
+{% extends "sarvadhihr/www/sidebar_pm.html" %}
+{% block page_content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Apply for Leave</h2>
+
+    <form id="leave-form" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
+
+        <div class="mb-3">
+            <label class="form-label">Leave Type</label>
+            <select class="form-control" name="leave_type" required>
+                <option value="">Select Leave Type</option>
+                <option value="Paid Leave">Paid Leave</option>
+                <option value="Sick Leave">Sick Leave</option>
+                <option value="Casual Leave">Casual Leave</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">From Date</label>
+            <input type="date" class="form-control" id="from_date" name="from_date" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">To Date</label>
+            <input type="date" class="form-control" id="to_date" name="to_date" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Reason</label>
+            <textarea class="form-control" name="leave_reason" rows="3" required></textarea>
+        </div>
+
+        <!-- Child Table: Leave Details -->
+        <h4 class="mt-4">Leave Details</h4>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Holiday Type</th>
+                    <th>Leave Type</th>
+                </tr>
+            </thead>
+            <tbody id="leave_details_table"></tbody>
+        </table>
+
+        <button type="submit" class="btn btn-success">Submit Leave Application</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById("from_date").addEventListener("change", updateLeaveDetails);
+    document.getElementById("to_date").addEventListener("change", updateLeaveDetails);
+    
+    function updateLeaveDetails() {
+        let fromDate = document.getElementById("from_date").value;
+        let toDate = document.getElementById("to_date").value;
+        let tableBody = document.getElementById("leave_details_table");
+
+        tableBody.innerHTML = ""; // Clear previous data
+    
+        if (fromDate && toDate && new Date(fromDate) <= new Date(toDate)) {
+            fetch(`/api/method/ourhrms.api_shru.leave.get_holiday_details?from_date=${fromDate}&to_date=${toDate}`)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.message) {
+                    console.error("No holiday data received");
+                    return;
+                }
+               
+                let holidays = data.message;
+                console.log(holidays)
+                let start = new Date(fromDate);
+                let end = new Date(toDate);
+                let rows = [];
+    
+                while (start <= end) {
+                    let dateString = start.toISOString().split("T")[0];
+                    console.log(dateString)
+                    let holidayType = holidays.message[dateString] || ""; // Fetch holiday type safely
+                    console.log(holidayType)
+                    rows.push(`
+                        <tr>
+                            <td><input type="date" class="form-control" name="leave_dates[]" value="${dateString}" readonly></td>
+                            <td><input type="text" class="form-control" name="holiday_types[]" value="${holidayType}" readonly></td>
+                            <td>
+                                <select class="form-control" name="leave_type_childs[]">
+                                    <option value="Full Day">Full Day</option>
+                                    <option value="Half Day - First Half">Half Day - First Half</option>
+                                    <option value="Half Day - Second Half">Half Day - Second Half</option>
+                                </select>
+                            </td>
+                        </tr>
+                    `);
+                    start.setDate(start.getDate() + 1);
+                }
+    
+                tableBody.innerHTML = rows.join(""); // More efficient than +=
+            })
+            .catch(error => console.error("Error fetching holiday details:", error));
+        }
+    }
+    
+    document.querySelector("#leave-form").addEventListener("submit", function(event) {
+        event.preventDefault();
+    
+        let leaveDates = [];
+        let holidayTypes = [];
+        let leaveTypeChilds = [];
+    
+        document.querySelectorAll("#leave_details_table tr").forEach(row => {
+            leaveDates.push(row.querySelector('input[name="leave_dates[]"]').value);
+            holidayTypes.push(row.querySelector('input[name="holiday_types[]"]').value);
+            leaveTypeChilds.push(row.querySelector('select[name="leave_type_childs[]"]').value);
+        });
+    
+        let formData = new FormData(document.getElementById("leave-form"));
+        formData.append("leave_dates", JSON.stringify(leaveDates));
+        formData.append("holiday_types", JSON.stringify(holidayTypes));
+        formData.append("leave_type_childs", JSON.stringify(leaveTypeChilds));
+    
+        console.log("Submitting Form Data:", Object.fromEntries(formData.entries())); // Debugging
+    
+        fetch("/api/method/ourhrms.api_shru.leave.apply_leave", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                alert("leave application submit successfully");
+                 window.location.href = "/pm/leave"; // Redirect to leave page on success
+            } else {
+                alert("Error submitting leave application.");
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    });
+    </script>
+    
+{% endblock %}

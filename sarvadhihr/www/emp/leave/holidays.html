@@ -1,0 +1,27 @@
+{% extends "sarvadhihr/www/sidebar_employee.html" %}
+{% block page_content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Complete Holiday List</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>Holiday Name</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for holiday in holiday_list %}
+                <tr>
+                    <td>{{ holiday.holiday_name }}</td>
+                    <td>{{ holiday.date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="text-center mt-4">
+        <a href="/" class="btn btn-secondary">Back</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <h2>Payment Report</h2>
+    <table>
+        <tr>
+            <th>Field</th>
+            <th>Details</th>
+        </tr>
+        <tr>
+            <td><b>employee</b></td>
+            <td>{{ employee }}</td>
+        </tr>
+        <tr>
+            <td><b>salary_structure</b></td>
+            <td>{{ salary_structure }}</td>
+        </tr>
+        <tr>
+            <td><b>total_salary</b></td>
+            <td>{{ total_salary }}</td>
+        </tr>
+            <td><b>net_salary</b></td>
+            <td>{{ net_salary }}</td>
+        </tr>
+    </table>
+    
+</body>
+</html>

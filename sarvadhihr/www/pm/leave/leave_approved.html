@@ -1,0 +1,45 @@
+{% extends "sarvadhihr/www/sidebar_pm.html" %}
+{% block page_content %}
+<div>
+    <div class="d-flex flex-wrap gap-3">
+        <button class="btn btn-dark rounded-pill shadow-sm text-white" id="LeaveDetails">Leave Details</button>
+        <button class="btn btn-dark rounded-pill shadow-sm text-white" id="LeaveRequest">Leave Request</button>
+        <button class="btn btn-dark rounded-pill shadow-sm text-white" id="LeaveApproved">Leave Approved</button>
+    </div>
+</div>
+<div class="table-responsive">
+    <table class="table table-bordered text-center">
+        <thead class="table-dark">
+            <tr>
+                <th>Leave Application</th>
+                <th>Leave Status</th>
+                <th>Approved By</th>
+                <th>Approval Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for leave in leave_approved_list %}
+            <tr>
+                <td>{{leave.leave_application}}</td>
+                <td>{{ leave.status }}</td>
+                <td>{{ leave.approved_by }}</td>
+                <td>{{ leave.approval_date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+    document.getElementById("LeaveDetails").addEventListener("click", function() {
+        window.location.href = "/pm/leave"; // Refreshes the current page
+    });
+
+    document.getElementById("LeaveRequest").addEventListener("click", function() {
+        window.location.href = "/pm/leave/leave_request.html"; // Change this to the correct URL of the other page
+    });
+
+    document.getElementById("LeaveApproved").addEventListener("click", function() {
+        window.location.href = window.location.href; // Change this to the correct URL of the other page
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-14 12:27:21.643438",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "holiday_name",
+  "date",
+  "is_weekend",
+  "is_public_holiday",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "holiday_name",
+   "fieldtype": "Data",
+   "label": "Holiday Name"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_weekend",
+   "fieldtype": "Check",
+   "label": "Is Weekend"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_public_holiday",
+   "fieldtype": "Check",
+   "label": "Is Public Holiday"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Description"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-02-14 12:35:26.968866",
+ "modified_by": "Administrator",
+ "module": "sarvadhihr",
+ "name": "Weekend and Holiday List",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

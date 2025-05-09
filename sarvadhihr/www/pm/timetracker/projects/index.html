@@ -1,0 +1,277 @@
+{% extends "sarvadhihr/www/sidebar_pm.html" %}
+
+{% block page_content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+    .button-container {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 1000;
+        padding: 15px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        border-bottom: 1px solid #ccc;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .scrollable-content {
+        height: 70vh;
+        overflow-y: auto;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #f9f9f9;
+    }
+</style>
+
+<div class="container mt-5">
+    <h2 class="mb-4">My Timetracker</h2>
+
+   <!-- Button Container (Sticky) -->
+   <div class="card button-container">
+        <div class="d-flex flex-wrap gap-3">
+            <button class="btn btn-dark rounded-pill shadow-sm text-white" id="timelogsButton">Timelogs</button>
+            <button class="btn btn-dark rounded-pill shadow-sm text-white" id="timesheetButton">Timesheets</button>
+            <button class="btn btn-dark rounded-pill shadow-sm text-white" id="jobsButton">Jobs</button>
+            <button class="btn btn-dark rounded-pill shadow-sm text-white" id="projectsButton">Projects</button>
+        </div>
+    </div>
+
+   
+</div>
+<div class="scrollable-content">
+
+
+<div class="card p-4 shadow-lg border border-secondary rounded">
+    <h4 class="mb-3 text-black-50">Project Tracker</h4>
+    <input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
+
+    <!-- Project Form -->
+    <form id="projectForm">
+        <div class="mb-3">
+            <label for="project_name" class="form-label fw-bold">Project Name</label>
+            <input type="text" class="form-control border-secondary" id="project_name" required>
+        </div>
+        <div class="mb-3">
+            <label for="client_name" class="form-label fw-bold">Client Name</label>
+            <input type="text" class="form-control border-secondary" id="client_name" required>
+        </div>
+        <div class="mb-3">
+            <label for="project_cost" class="form-label fw-bold">Project Cost</label>
+            <input type="number" class="form-control border-secondary" id="project_cost" required>
+        </div>
+        <div class="mb-3">
+            <label for="project_manager" class="form-label fw-bold">Project Manager</label>
+            <select  id="project_manager" required>
+                <option value="">Select User</option>
+            </select>
+                </div>
+        <div class="mb-3">
+            <label for="status" class="form-label fw-bold">Status</label>
+            <select class="form-control border-secondary" id="status" required>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+                <option value="On Hold">On Hold</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-dark rounded-pill shadow-sm text-white">Save Project</button>
+    </form>
+
+
+
+</div>
+
+
+<div class="mt-4">
+    <h4 class="mb-3">project Entries</h4>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Project Name</th>
+                <th>Client Name</th>
+                <th>Project Cost</th>
+                <th>Project Manager</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="projectTableBody">
+        </tbody>
+    </table>
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    fetchUsers();
+});
+    console.log("script added")
+    document.addEventListener('submit', function (event) {
+    if (event.target.id === 'projectForm') {
+        event.preventDefault();
+
+        let formData = {
+            project_name: document.getElementById('project_name').value,
+            client_name: document.getElementById('client_name').value,
+            project_cost: document.getElementById('project_cost').value,
+            project_manager: document.getElementById('project_manager').value,
+            status: document.getElementById('status').value,
+        };
+        console.log("form data:",formData)
+        if (!formData.project_name || !formData.client_name || !formData.project_cost || !formData.project_manager || !formData.status ) {
+            alert("Please fill in all the fields.");
+            return;
+        }
+
+        let csrfTokenElement = document.querySelector('[name="csrf_token"]');
+        let csrf_token = csrfTokenElement ? csrfTokenElement.value : '';
+
+        fetch('http://hrms.localhost:8002/api/method/ourhrms.api.projects', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Frappe-CSRF-Token': csrf_token,
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Server Response:", data);
+
+            // Check if project exists
+            if (data._server_messages) {
+                let messages = JSON.parse(data._server_messages);
+                alert(messages[0].message);
+                return;
+            }
+
+            alert("Data submitted successfully!");
+
+            // Ensure form exists before resetting
+            let form = document.getElementById('projectForm');
+            if (form) {
+                form.reset();
+            }
+        })
+        .catch(error => {
+            console.error("Request failed:", error);
+        });
+    }
+});
+
+
+
+
+
+function fetchUsers() {
+    console.log("Fetching users...");
+
+    fetch('/api/method/ourhrms.api.get_users')
+        .then(response => response.json())
+        .then(data => {
+            console.log("User Data Fetched:", data);
+
+            let userSelect = document.getElementById("project_manager");
+            if (!userSelect) {
+                console.error("User dropdown not found!");
+                return;
+            }
+
+            userSelect.innerHTML = '<option value="">Select User</option>'; // Reset dropdown
+
+            if (data.message && data.message.status === "success" && Array.isArray(data.message.data)) {
+                console.log("Extracted User Data:", data.message.data);
+
+                data.message.data.forEach(user => {
+                    let displayText = user.full_name || user.username || user.email || user.name; // Ensure something is displayed
+                    let option = document.createElement("option");
+                    option.value = user.name || user.username || user.email; 
+                    option.textContent = displayText;  // ✅ Fix: Set the visible text inside <option>
+
+                    console.log("Adding user:", displayText);
+                    userSelect.appendChild(option);
+                });
+                console.log("User dropdown updated:", userSelect.innerHTML);
+            } else {
+                console.error("No valid user data found in response.");
+            }
+        })
+        .catch(error => console.error('Error fetching users:', error));
+}
+
+
+
+// document.getElementById("contentContainer").innerHTML = content;
+fetchProjects(); // Load existing timelogs
+    
+    function appendToTable(data) {
+        let tableBody = document.getElementById('timelogTableBody');
+        let row = `<tr>
+                        <td>${data.project_name}</td>
+                        <td>${data.client_name}</td>
+                        <td>${data.project_cost}</td>
+                        <td>${data.project_manager}</td>
+                        <td>${data.status}</td>
+                    </tr>`;
+        tableBody.innerHTML += row;
+    }
+
+    function fetchProjects() {
+        console.log("fetch project calling")
+    fetch('/api/method/ourhrms.api.get_project', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Fetched Data:', data); // Debugging step
+
+            // Ensure data.message and data.message.data exist
+        if (data.message && Array.isArray(data.message.data)) {
+            let records = data.message.data;
+            let tableBody = document.getElementById("projectTableBody");
+            tableBody.innerHTML = "";
+
+            records.forEach((log, index) => {
+                let row = `<tr>
+                    <td>${log.project_name || '-'}</td>
+                    <td>${log.client_name || '-'}</td>
+                    <td>${log.project_cost || '-'}</td>
+                    <td>${log.project_manager || '-'}</td>
+                    <td>${log.status || '-'}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+        } else {
+            console.error("Invalid data format or missing 'data' array");
+        }
+       
+    })
+    .catch(error => console.error("Request failed:", error));
+}
+
+
+ // Event Listeners for buttons
+ document.getElementById("timelogsButton").addEventListener("click", function() {
+        window.location.href = "/pm/timetracker/timelogs/index.html"; // Redirects to the specified URL
+    });
+
+    document.getElementById("timesheetButton").addEventListener("click", function() {
+        window.location.href = "/pm/timetracker/timesheet/index.html"; // Redirects to the specified URL
+    });
+
+    document.getElementById("jobsButton").addEventListener("click", function() {
+        window.location.href = "/pm/timetracker/jobs/index.html"; // Redirects to the specified URL
+
+    });
+
+    document.getElementById("projectsButton").addEventListener("click", function() {
+        window.location.href = "/pm/timetracker/projects/index.html"; // Redirects to the specified URL
+    });
+
+
+
+</script>
+{% endblock %}
