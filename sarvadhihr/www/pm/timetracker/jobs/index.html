@@ -138,7 +138,7 @@ document.addEventListener("DOMContentLoaded", function () {
         let csrfTokenElement = document.querySelector('[name="csrf_token"]');
         let csrf_token = csrfTokenElement ? csrfTokenElement.value : '';
 
-        fetch('http://hrms.localhost:8002/api/method/ourhrms.api.jobs', {
+        fetch('/api/method/sarvadhihr.api.jobs', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -190,7 +190,7 @@ fetchJobs(); //      existing timelogs
 
     function fetchJobs() {
         console.log("fetch project calling")
-    fetch('/api/method/ourhrms.api.get_job', {
+    fetch('/api/method/sarvadhihr.api.get_job', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
     })
@@ -234,7 +234,7 @@ fetchJobs(); //      existing timelogs
 function fetchprojects() {
     console.log("Fetching project...");
 
-    fetch('/api/method/ourhrms.api.get_project')
+    fetch('/api/method/sarvadhihr.api.get_project')
         .then(response => response.json())
         .then(data => {
             console.log("Full API Response for project:", data);
@@ -268,7 +268,7 @@ function fetchprojects() {
 function fetchUsers() {
     console.log("Fetching users...");
 
-    fetch('/api/method/ourhrms.api.get_users')
+    fetch('/api/method/sarvadhihr.api.get_users')
         .then(response => response.json())
         .then(data => {
             console.log("User Data Fetched:", data);
@@ -316,7 +316,7 @@ document.addEventListener("DOMContentLoaded", function () {
 function fetchdepartment() {
     console.log("Fetching department...");
 
-    fetch('/api/method/ourhrms.api.get_department')
+    fetch('/api/method/sarvadhihr.api.get_department')
         .then(response => response.json())
         .then(data => {
             console.log("Full API Response for department:", data);

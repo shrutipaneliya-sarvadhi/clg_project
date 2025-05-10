@@ -128,7 +128,7 @@
         let csrfTokenElement = document.querySelector('[name="csrf_token"]');
         let csrf_token = csrfTokenElement ? csrfTokenElement.value : '';
 
-        fetch('http://hrms.localhost:8002/api/method/ourhrms.api.projects', {
+        fetch('/api/method/sarvadhihr.api.projects', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -168,7 +168,7 @@
 function fetchUsers() {
     console.log("Fetching users...");
 
-    fetch('/api/method/ourhrms.api.get_users')
+    fetch('/api/method/sarvadhihr.api.get_users')
         .then(response => response.json())
         .then(data => {
             console.log("User Data Fetched:", data);
@@ -220,7 +220,7 @@ fetchProjects(); // Load existing timelogs
 
     function fetchProjects() {
         console.log("fetch project calling")
-    fetch('/api/method/ourhrms.api.get_project', {
+    fetch('/api/method/sarvadhihr.api.get_project', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
     })

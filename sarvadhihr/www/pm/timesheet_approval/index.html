@@ -3,6 +3,7 @@
 {% block page_content %}
   <div class="container mt-4">
     <h2>Approve Timesheet</h2>
+    <input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
 
     <!-- Timesheet Selection -->
     <label for="employee_timesheet">Select Timesheet:</label>
@@ -25,7 +26,7 @@
    document.addEventListener("DOMContentLoaded", function () {
     console.log("Fetching pending timesheets...");
 
-    fetch('/api/method/ourhrms.api.get_pending_timesheets')
+    fetch('/api/method/sarvadhihr.api.get_pending_timesheets')
         .then(response => response.json())
         .then(data => {
             console.log("Full API Response for pending_timesheet:", JSON.stringify(data, null, 2));
@@ -57,7 +58,10 @@
 });
 
 
+let csrf_token = document.querySelector('[name="csrf_token"]').value;
+    console.log("CSRF Token:", csrf_token);
 
+    // Function to approve timesheet
 function approveTimesheet() {
         let selectedTimesheet = document.getElementById("employee_timesheet").value;
         let selectedStatus = document.getElementById("status").value;
@@ -69,10 +73,11 @@ function approveTimesheet() {
 
         console.log("Approving timesheet:", selectedTimesheet, "with status:", selectedStatus);
 
-        fetch('/api/method/ourhrms.api.timesheet_approval', {
+        fetch('/api/method/sarvadhihr.api.timesheet_approval', {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                'Content-Type': 'application/json',
+                'X-Frappe-CSRF-Token': csrf_token            
             },
             body: JSON.stringify({
                 timesheet: selectedTimesheet,

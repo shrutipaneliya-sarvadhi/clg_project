@@ -180,7 +180,7 @@ function showTimerButton(show) {
 
             let csrf_token = document.querySelector('[name="csrf_token"]').value;
 
-            fetch('http://hrms.localhost:8002/api/method/ourhrms.api.timelog', {
+            fetch('/api/method/sarvadhihr.api.timelog', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -222,7 +222,7 @@ function showTimerButton(show) {
     }
 
     function fetchTimelogs() {
-    fetch('/api/method/ourhrms.api.get_timelogs', {
+    fetch('/api/method/sarvadhihr.api.get_timelogs', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
     })
@@ -455,7 +455,7 @@ function resetInactivityTimer() {
 function saveFormattedTotalTime(date, formattedTotalTime) {
     let csrf_token = document.querySelector('[name="csrf_token"]').value;
 
-    fetch('/api/method/ourhrms.api.update_formatted_total_time', {
+    fetch('/api/method/sarvadhihr.api.update_formatted_total_time', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -485,7 +485,7 @@ function saveFormattedTotalTime(date, formattedTotalTime) {
 function fetchJobs() {
     console.log("Fetching jobs...");
 
-    fetch('/api/method/ourhrms.api.get_job')
+    fetch('/api/method/sarvadhihr.api.get_job')
         .then(response => response.json())
         .then(data => {
             console.log("Full API Response:", data);
@@ -522,7 +522,7 @@ function fetchJobs() {
 function fetchprojects() {
     console.log("Fetching project...");
 
-    fetch('/api/method/ourhrms.api.get_project')
+    fetch('/api/method/sarvadhihr.api.get_project')
         .then(response => response.json())
         .then(data => {
             console.log("Full API Response for project:", data);
@@ -556,7 +556,7 @@ function fetchprojects() {
 function fetchJobsByProject(project_name) {
     console.log("Fetching jobs for project:", project_name);
 
-    fetch(`/api/method/ourhrms.api.get_job?project_name=${encodeURIComponent(project_name)}`)
+    fetch(`/api/method/sarvadhihr.api.get_job?project_name=${encodeURIComponent(project_name)}`)
         .then(response => response.json())
         .then(data => {
             console.log("Full API Response:", data);

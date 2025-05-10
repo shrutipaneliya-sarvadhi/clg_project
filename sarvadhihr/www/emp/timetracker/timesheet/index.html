@@ -227,7 +227,7 @@ document.getElementById("showTimelogs").addEventListener("click", function() {
         let csrf_token = document.querySelector('[name="csrf_token"]').value;
 
         // Send request
-        fetch('http://hrms.localhost:8002/api/method/ourhrms.api.timesheet', {
+        fetch('/api/method/sarvadhihr.api.timesheet', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -265,7 +265,7 @@ document.getElementById("showTimelogs").addEventListener("click", function() {
 function fetchTimelogs(selectedDate = "") {
     console.log("Fetching timelogs...");
 
-    fetch('/api/method/ourhrms.api.get_timelogs', {
+    fetch('/api/method/sarvadhihr.api.get_timelogs', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
     })
@@ -355,7 +355,7 @@ function fetchTimelogs(selectedDate = "") {
 function fetchTimesheet(selectedDate = "") {
     console.log("Fetching timesheet...");
 
-    fetch('/api/method/ourhrms.api.get_timesheet', {
+    fetch('/api/method/sarvadhihr.api.get_timesheet', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
     })

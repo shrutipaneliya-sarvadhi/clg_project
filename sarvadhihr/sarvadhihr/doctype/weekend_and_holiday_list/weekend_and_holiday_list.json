@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format:{holiday_name}.{###}",
  "creation": "2025-02-14 12:27:21.643438",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -42,10 +43,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-14 12:35:26.968866",
+ "modified": "2025-05-09 12:04:22.825312",
  "modified_by": "Administrator",
  "module": "sarvadhihr",
  "name": "Weekend and Holiday List",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
@@ -61,6 +63,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

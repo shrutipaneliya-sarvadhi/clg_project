@@ -192,7 +192,7 @@ def generate_payment_report_pdf(doc):
     file_name = f"Payslip_{doc.employee}.pdf"
 
     # ✅ Ensure template path is correct
-    template_path = "ourhrms/print_format/format/format.html"
+    template_path = "sarvadhihr/print_format/format/format.html"
     html_template = frappe.get_template(template_path).render({
         "employee": doc.employee,
         "salary_structure": doc.salary_structure,

@@ -60,7 +60,7 @@
         tableBody.innerHTML = ""; // Clear previous data
     
         if (fromDate && toDate && new Date(fromDate) <= new Date(toDate)) {
-            fetch(`/api/method/ourhrms.api_shru.leave.get_holiday_details?from_date=${fromDate}&to_date=${toDate}`)
+            fetch(`/api/method/sarvadhihr.api_shru.leave.get_holiday_details?from_date=${fromDate}&to_date=${toDate}`)
             .then(response => response.json())
             .then(data => {
                 if (!data.message) {
@@ -121,7 +121,7 @@
     
         console.log("Submitting Form Data:", Object.fromEntries(formData.entries())); // Debugging
     
-        fetch("/api/method/ourhrms.api_shru.leave.apply_leave", {
+        fetch("/api/method/sarvadhihr.api_shru.leave.apply_leave", {
             method: "POST",
             body: formData
         })
