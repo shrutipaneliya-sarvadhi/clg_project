@@ -62,7 +62,7 @@ function fetchChannels() {
         method: "sarvadhihr.www.discussion.discussion.get_discussion_channels",
         callback({ message: channels }) {
             const container = document.getElementById("channel-list");
-
+            console.log(container)
             if (!container) return;
             container.innerHTML = ""; // Clear the container
 
