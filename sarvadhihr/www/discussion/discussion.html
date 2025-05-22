@@ -15,7 +15,7 @@
         <div id="channel-list-container" style="display: none;">
           <div id="channel-list"></div>
         </div>
-        <button id="hr-desk-button" class="btn btn-secondary w-100 mt-3">HR Desk</button>
+        <!-- <button id="hr-desk-button" class="btn btn-secondary w-100 mt-3">HR Desk</button> -->
       </div>
       <!-- Main Content -->
       <div class="col-8 col-md-9 bg-light p-4 main-content">
@@ -93,7 +93,7 @@ function fetchChannels() {
                     localStorage.setItem("activeChannel", channel.name);
                     container.querySelectorAll(".nav-items").forEach(el => el.classList.remove("active"));
                     link.classList.add("active");
-                    loadAnnouncements(channel.name, 1, 1);
+                    loadAnnouncements(channel.name, 1, 2);
                 });
 
                 container.appendChild(link);
@@ -104,7 +104,7 @@ function fetchChannels() {
             const activeLink = container.querySelector(`[data-channel="${saved}"]`);
             if (saved && activeLink) {
                 activeLink.classList.add("active");
-                loadAnnouncements(saved, 1, 1);
+                loadAnnouncements(saved, 1, 2);
             }
         },
         error(err) {
@@ -169,7 +169,7 @@ function renderPost(container, post) {
 
     const avatar = document.createElement("img");
     Object.assign(avatar, {
-        src: post.user_image || "/files/default_avatar.jpg",
+        src: post.user_image || "/public/files/website_theme/profile.jpeg",
         alt: "User Avatar"
     });
     Object.assign(avatar.style, {
@@ -183,7 +183,7 @@ function renderPost(container, post) {
     const avatarContainer = document.createElement("div");
     avatarContainer.className = "d-flex align-items-center mb-3";
     
-    avatarContainer.appendChild(avatar);
+    <!-- avatarContainer.appendChild(avatar); -->
 
     const authorInfo = document.createElement("div");
     authorInfo.className = "d-flex flex-column";
