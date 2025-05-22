@@ -36,7 +36,7 @@ def apply_leave():
             "leave_reason": leave_reason,
             "status": "Pending",
         })
-
+        print(leave_application)
         for leave_date, holiday_type, leave_type_child in zip(leave_dates, holiday_types, leave_type_childs):
             print(f"{leave_date} ... {holiday_type} ... {leave_type_child}")
             leave_application.append("leave_details", {
@@ -44,10 +44,9 @@ def apply_leave():
                 "holiday_type": holiday_type,
                 "leave_details_child": leave_type_child,
             })
-
-        leave_application.insert()
+        leave_application.insert(ignore_permissions=True)
         frappe.db.commit()
-
+        print("Leave application submitted successfully")
         return {"message": "Leave application submitted successfully"}
 
     except Exception as e:

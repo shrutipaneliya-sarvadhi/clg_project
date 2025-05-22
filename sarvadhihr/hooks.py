@@ -5,6 +5,8 @@ app_description = "hrms"
 app_email = "shrutipaneliya.sarvadhi@gmail.com"
 app_license = "mit"
 
+
+
 # Apps
 # ------------------
 
@@ -63,6 +65,7 @@ app_license = "mit"
 role_home_page = {
 	"Employee": '/app/emp/employee'
 }
+fixtures = ["Web Page"]
 
 # Generators
 # ----------
