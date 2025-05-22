@@ -63,6 +63,7 @@ app_license = "mit"
 role_home_page = {
 	"Employee": '/app/emp/employee'
 }
+fixtures = ["Web Page"]
 
 # Generators
 # ----------
